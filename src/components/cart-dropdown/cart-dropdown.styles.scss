@@ -12,7 +12,8 @@
   z-index: 5;
   overflow: auto;
 
-  .empty-message {
+  .empty-message,
+  .span {
     font-size: 18px;
     margin: 50px auto;
   }
@@ -21,7 +22,7 @@
     height: 290px;
     display: flex;
     flex-direction: column;
-    overflow: scroll;
+    overflow: auto;
   }
 
   button {
