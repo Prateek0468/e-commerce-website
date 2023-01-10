@@ -17,7 +17,7 @@ import {
   collection,
   writeBatch,
   query,
-  getDocs
+  getDocs,
 } from "firebase/firestore";
 
 // Your web app's Firebase configuration
@@ -37,7 +37,7 @@ const firebaseApp = initializeApp(firebaseConfig);
 const googleProvider = new GoogleAuthProvider();
 
 googleProvider.setCustomParameters({
-  promp: "select_account",
+  prompt: 'select_account',
 });
 
 // auth keeps track of the authentication state of the entire application, even when we re-direct.
@@ -45,6 +45,7 @@ googleProvider.setCustomParameters({
 export const auth = getAuth();
 export const signInWithGooglePopup = () =>
   signInWithPopup(auth, googleProvider);
+
 
 export const db = getFirestore();
 
@@ -61,25 +62,17 @@ export const addCollectionAndDocuments = async (
     batch.set(docRef, object);
   });
 
-
   await batch.commit();
 };
 
 export const getCategoriesAndDocuments = async () => {
-  const collectionRef = collection(db, 'categories');
-
+  const collectionRef = collection(db, "categories");
   const q = query(collectionRef);
 
   const querySnapshot = await getDocs(q);
-  const categoryMap = querySnapshot.docs.reduce((acc, docSnapshot) => {
-    const {title, items} = docSnapshot.data();
-    acc[title.toLowerCase()] = items;
+  return querySnapshot.docs.map((docSnapshot) => docSnapshot.data());
+};
 
-    return acc;
-  }, {})
-
-  return categoryMap;
-}
 
 export const createUserDocumentFromAuth = async (
   userAuth,
@@ -105,8 +98,6 @@ export const createUserDocumentFromAuth = async (
     } catch (error) {
       alert("error creating the user", error.message);
     }
-
-    return userDocRef;
   }
 
   // if user data does not esxist
@@ -114,7 +105,10 @@ export const createUserDocumentFromAuth = async (
 
   // if user data exists
   // return userDocRef
+
+  return userSnapshot;
 };
+
 
 export const createAuthUserWithEmailAndPassword = async (email, password) => {
   if (!email || !password) return;
@@ -133,3 +127,21 @@ export const signOutUser = async () => await signOut(auth);
 // always listens when a user's auth state changes.(signed In or signed Out)
 export const onAuthStateChangedListener = (callback) =>
   onAuthStateChanged(auth, callback);
+
+// from observable listener(resides currently inside App.js) to promise based function call
+
+export const getCurrentUser = () => {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (userAuth) => {
+        unsubscribe();
+        resolve(userAuth);
+      },
+      reject
+    );
+  });
+};
+
+
+
